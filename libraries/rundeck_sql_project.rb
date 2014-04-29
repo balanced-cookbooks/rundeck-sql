@@ -73,6 +73,7 @@ class Chef
           purge true
         end
       else
+        include_recipe 'git'
         git new_resource.sql_target_destination do
           user 'root'
           group 'root'
@@ -85,14 +86,16 @@ class Chef
 
     def create_sql_jobs
       parse_sql_tasks.each_pair do |schedule, sql_files|
-
         sql_files.each do |sql_file|
-          rundeck_job task['name'] do
+          job_name = ::File.basename(sql_file).gsub(/\s+/, '_')
+          Chef::Log.info("Converting #{sql_file} to #{job_name}")
+          rundeck_job job_name do
             parent new_resource
             source "#{schedule}.yml.erb"
+            cookbook 'rundeck-sql'
             options(
                 :commands => [
-                    "psql --dbname=#{task['name']} -f #{sql_file}"
+                    "psql --dbname=#{new_resource.name} -f #{sql_file}"
                 ]
             )
           end
@@ -102,17 +105,28 @@ class Chef
 
     def parse_sql_tasks
       tasks = {'monthly' => [], 'daily' => [], 'weekly' => []}
+      Chef::Log.debug(
+          "Changing directory to #{new_resource.sql_target_destination} " +
+          "trying to group for #{tasks.keys.join(', ')} tasks"
+      )
       Dir.chdir(new_resource.sql_target_destination) do |path|
-        new_resource.sql_globs.each do |glob_string|
-          files = Dir.glob(glob_string)
-          next if files.nil?
-          tasks.keys do |key|
-            if files.first?.contains(keys)
-              tasks[key] + files
+        Chef::Log.debug("Changed directory to: #{path}")
+        Chef::Log.debug("Directory listing: #{Dir.entries(path)}")
+
+        new_resource.sql_globs.each do |glob_expr|
+          files = Dir.glob(glob_expr)
+          Chef::Log.debug("Globbed: #{files} with glob expr: #{glob_expr}")
+
+          files.each do |fname|
+            tasks.keys.each do |key|
+              if fname.start_with?(key)
+                tasks[key] << fname
+              end
             end
           end
         end
       end
+      Chef::Log.info("Populated tasks: #{tasks}")
       tasks
     end
 

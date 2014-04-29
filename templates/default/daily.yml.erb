@@ -2,12 +2,11 @@
     time:
       seconds: '0'
       minute: '30'
-      hour: '23'
+      hour: '22'
     month: '*'
-    year: '*'
-    dayofmonth: '1'
     weekday:
-      day: '*'
+      day: 'MON-FRI'
+    year: '*'
   loglevel: INFO
   sequence:
     keepgoing: false
@@ -29,3 +28,22 @@
       rankOrder: ascending
     include:
       tags: balanced-worker-<%= @app_environment %>
+
+    time:
+      seconds: '?'
+      minute: '?'
+      hour: '?'
+    dayofmonth: '1'
+    month: '*'
+    weekday:
+      day: '?'
+    year: '*'
+    time:
+      seconds: '?'
+      minute: '?'
+      hour: '?'
+    dayofmonth: '1'
+    month: '*'
+    weekday:
+      day: '?'
+    year: '*'
