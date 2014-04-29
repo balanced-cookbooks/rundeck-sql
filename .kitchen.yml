@@ -1,0 +1,21 @@
+---
+driver:
+  name: vagrant
+  customize:
+    memory: 1024
+  network:
+  - ["forwarded_port", {guest: 4440, host: 4440}]
+
+provisioner:
+  name: chef_solo
+
+platforms:
+  - name: ubuntu-12.04
+    run_list:
+    - recipe[apt]
+
+suites:
+- name: simple
+  run_list:
+  - recipe[rundeck]
+  - recipe[rundeck-sql_test::simple]
