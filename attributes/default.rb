@@ -18,4 +18,6 @@
 
 default['rundeck-sql']['repository'] = nil
 default['rundeck-sql']['revision'] = 'master'
+default['rundeck-sql']['failure_email'] = 'test@example.com'
+default['rundeck-sql']['failure_url'] = 'https://example.com/notify-me'
 

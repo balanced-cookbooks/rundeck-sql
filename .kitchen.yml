@@ -16,6 +16,10 @@ platforms:
 
 suites:
 - name: simple
+  attributes:
+    postgres:
+      live:
+        slave: balanced-db-01.vandelay.io
   run_list:
   - recipe[rundeck]
   - recipe[rundeck-sql_test::simple]

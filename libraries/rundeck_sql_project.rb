@@ -15,11 +15,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+require 'shellwords'
 
 class Chef
   class Resource::RundeckSqlProject < Resource::RundeckProject
     attribute(:sql_repository, kind_of: String, default: lazy { node['rundeck-sql']['repository'] }, required: true)
     attribute(:sql_revision, kind_of: String, default: lazy { node['rundeck-sql']['revision'] })
+    attribute(:sql_failure_email, kind_of: String, default: lazy { node['rundeck-sql']['failure_email'] })
+    attribute(:sql_failure_url, kind_of: String, default: lazy { node['rundeck-sql']['failure_url'] })
     attribute(:sql_globs, kind_of: Array, default: [], required: true)
     attribute(:sql_remote_directory, kind_of: String)     # For debugging, use remote_directory instead of git, set to the name of the cookbook
 
@@ -87,16 +90,21 @@ class Chef
     def create_sql_jobs
       parse_sql_tasks.each_pair do |schedule, sql_files|
         sql_files.each do |sql_file|
+          sql_file = ::File.absolute_path(sql_file, new_resource.sql_target_destination)
           job_name = ::File.basename(sql_file).gsub(/\s+/, '_')
           Chef::Log.info("Converting #{sql_file} to #{job_name}")
+          # TODO: probably should explicitly set the job name
           rundeck_job job_name do
             parent new_resource
             source "#{schedule}.yml.erb"
             cookbook 'rundeck-sql'
+            # TODO: probably should set the connection settings via resource
             options(
                 :commands => [
-                    "psql --dbname=#{new_resource.name} -f #{sql_file}"
-                ]
+                    "psql --dbname=#{new_resource.name} -U #{new_resource.name} -h #{node['postgres']['live']['slave']} < #{Shellwords.escape(sql_file)}"
+                ],
+                :failure_recipient => new_resource.sql_failure_email,
+                :failure_notify_url => new_resource.sql_failure_url
             )
           end
         end
@@ -124,6 +132,7 @@ class Chef
               end
             end
           end
+
         end
       end
       Chef::Log.info("Populated tasks: #{tasks}")

@@ -17,46 +17,80 @@
 #
 
 require 'serverspec'
+require 'yaml'
 include Serverspec::Helper::Exec
 include Serverspec::Helper::DetectOS
 
 ENV['RDECK_BASE'] = '/var/lib/rundeck'
 
-describe command('rd-jobs -p sql --name one --file /tmp/one --format yaml') do
-  it { should return_exit_status(0) }
+
+describe 'interrogate jobs' do
+
+  context 'balanced' do
+    let(:cmd) {
+      backend.run_command('rd-jobs -p balanced --verbose')
+    }
+
+    it 'should succeed' do
+      cmd.exit_status.to_i.should eql(0)
+    end
+
+    context 'should have two jobs' do
+      subject do
+        YAML.load(cmd.stdout)
+      end
+      its(:length) { should eql(2) }
+    end
+
+  end
+
+  context 'precog' do
+
+    let(:cmd) {
+      backend.run_command('rd-jobs -p precog --verbose')
+    }
+
+    it 'should succeed' do
+      cmd.exit_status.to_i.should eql(0)
+    end
+
+
+    context 'should have two jobs' do
+      subject do
+        YAML.load(cmd.stdout)
+      end
+      its(:length) { should eql(2) }
+    end
+
+  end
+
 end
 
-describe file('/tmp/one') do
+
+describe file('/var/lib/rundeck/projects/balanced/etc/project.properties') do
   it { should be_a_file }
-  its(:content) { should include('description: Task one.') }
+  its(:content) { should include('config.file=/var/lib/rundeck/projects/balanced/etc/resources.xml') }
 end
 
-describe command('rd-jobs -p sql --name two --file /tmp/two --format yaml') do
-  it { should return_exit_status(0) }
-end
-
-describe file('/tmp/two') do
-  it { should be_a_file }
-  its(:content) { should include("description: |-\n    Task\n        two.") }
-  its(:content) { should include("options:\n    arg1:\n      required: true") }
-end
-
-describe command('rd-jobs -p sql --name three --file /tmp/three --format yaml') do
-  it { should return_exit_status(0) }
-end
-
-describe file('/tmp/three') do
-  it { should be_a_file }
-  its(:content) { should include('description: Take three.') }
-  its(:content) { should include("options:\n    c:\n      required: true\n    d:\n      value: '1'") }
-end
-
-describe file('/var/lib/rundeck/projects/sql/etc/project.properties') do
-  it { should be_a_file }
-  its(:content) { should include('config.file=/var/lib/rundeck/projects/sql/etc/resources.xml') }
-end
-
-describe file('/var/lib/rundeck/projects/sql/etc/resources.xml') do
+describe file('/var/lib/rundeck/projects/balanced/etc/resources.xml') do
   it { should be_a_file }
   its(:content) { should include('name="localhost"') }
+end
+
+describe file('/var/lib/rundeck/projects/balanced/sql') do
+  it { should be_directory }
+end
+
+describe file('/var/lib/rundeck/projects/precog/etc/project.properties') do
+  it { should be_a_file }
+  its(:content) { should include('config.file=/var/lib/rundeck/projects/precog/etc/resources.xml') }
+end
+
+describe file('/var/lib/rundeck/projects/precog/etc/resources.xml') do
+  it { should be_a_file }
+  its(:content) { should include('name="localhost"') }
+end
+
+describe file('/var/lib/rundeck/projects/precog/sql') do
+  it { should be_directory }
 end

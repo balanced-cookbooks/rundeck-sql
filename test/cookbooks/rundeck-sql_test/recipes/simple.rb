@@ -16,6 +16,8 @@
 # limitations under the License.
 #
 
+include_recipe 'postgresql::server'
+
 rundeck_sql_project 'balanced' do
   sql_repository 'balanced'
   sql_remote_directory 'rundeck-sql_test'
