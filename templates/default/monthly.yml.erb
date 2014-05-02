@@ -17,6 +17,9 @@
     <% end %>
   description: 'Monthly SQL scripts'
   notification:
+    onsuccess:
+      recipients: <%= @success_recipient %>
+      urls: <%= @success_notify_url %>
     onfailure:
       recipients: <%= @failure_recipient %>
       urls: <%= @failure_notify_url %>

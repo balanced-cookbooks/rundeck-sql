@@ -63,7 +63,7 @@ GRAPH
     java (>= 0.0.0)
     poise (>= 0.0.0)
     runit (>= 0.0.0)
-  rundeck-sql (1.0.0)
+  rundeck-sql (1.0.1)
     balanced-citadel (>= 0.0.0)
     balanced-postgresql (>= 0.0.0)
     git (>= 0.0.0)

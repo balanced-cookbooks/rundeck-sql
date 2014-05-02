@@ -23,6 +23,8 @@ class Chef
     attribute(:sql_revision, kind_of: String, default: lazy { node['rundeck-sql']['revision'] })
     attribute(:sql_failure_email, kind_of: String, default: lazy { node['rundeck-sql']['failure_email'] })
     attribute(:sql_failure_url, kind_of: String, default: lazy { node['rundeck-sql']['failure_url'] })
+    attribute(:sql_success_email, kind_of: String, default: lazy { node['rundeck-sql']['success_email'] })
+    attribute(:sql_success_url, kind_of: String, default: lazy { node['rundeck-sql']['success_url'] })
     attribute(:sql_globs, kind_of: Array, default: [], required: true)
     attribute(:sql_remote_directory, kind_of: String)     # For debugging, use remote_directory instead of git, set to the name of the cookbook
 
@@ -129,7 +131,9 @@ class Chef
                     "psql --dbname=#{new_resource.name} -U #{new_resource.name} -h #{node['postgres']['live']['slave']} < #{Shellwords.escape(sql_file)}"
                 ],
                 :failure_recipient => new_resource.sql_failure_email,
-                :failure_notify_url => new_resource.sql_failure_url
+                :failure_notify_url => new_resource.sql_failure_url,
+                :success_recipient => new_resource.sql_success_email,
+                :success_notify_url => new_resource.sql_success_url
             )
           end
         end
