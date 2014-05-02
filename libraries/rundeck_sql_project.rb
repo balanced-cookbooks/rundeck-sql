@@ -74,6 +74,9 @@ class Chef
           purge true
         end
       else
+        create_ssh_directory
+        write_ssh_config
+
         include_recipe 'git'
         git new_resource.sql_target_destination do
           user 'root'
@@ -82,6 +85,30 @@ class Chef
           revision new_resource.sql_revision
           action :sync
         end
+      end
+    end
+
+    def create_ssh_directory
+      directory '/root/.ssh' do
+        action :create
+      end
+    end
+
+    def write_ssh_config
+      file '/root/.ssh/deploy' do
+        content citadel['deploy_key/deploy.pem']
+        mode '400'
+      end
+
+      template '/root/.ssh/config' do
+        source 'ssh_config.erb'
+        cookbook 'rundeck-sql'
+        owner 'root'
+        group 'root'
+        mode '400'
+        variables(
+            :ssh_identity_file => '/root/.ssh/deploy'
+        )
       end
     end
 

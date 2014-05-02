@@ -28,3 +28,4 @@ long_description IO.read(File.join(File.dirname(__FILE__), 'README.md'))
 depends 'git'
 depends 'rundeck', '~> 99.1.0'
 depends 'balanced-postgresql'
+depends 'balanced-citadel'

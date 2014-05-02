@@ -35,7 +35,6 @@ rundeck_sql_project 'balanced' do
   sql_globs ['monthly/*', 'daily/*']
 end
 
-
 rundeck_sql_project 'precog' do
   sql_repository 'balanced'
   sql_remote_directory 'rundeck-sql_test'
