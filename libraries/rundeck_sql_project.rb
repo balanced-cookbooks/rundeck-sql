@@ -33,7 +33,6 @@ class Chef
   end
 
   class Provider::RundeckSqlProject < Provider::RundeckProject
-    include Chef::Mixin::ShellOut
 
     private
 
@@ -42,9 +41,9 @@ class Chef
       r = super
       # Run these first since we need it installed to parse jobs
       notifying_block do
-        install_postgres
         clone_sql_repository
       end
+      install_postgres
       create_sql_jobs
       r
     end
@@ -113,26 +112,17 @@ class Chef
 
     def parse_sql_tasks
       tasks = {'monthly' => [], 'daily' => [], 'weekly' => []}
-      Chef::Log.debug(
-          "Changing directory to #{new_resource.sql_target_destination} " +
-          "trying to group for #{tasks.keys.join(', ')} tasks"
-      )
-      Dir.chdir(new_resource.sql_target_destination) do |path|
-        Chef::Log.debug("Changed directory to: #{path}")
-        Chef::Log.debug("Directory listing: #{Dir.entries(path)}")
 
-        new_resource.sql_globs.each do |glob_expr|
-          files = Dir.glob(glob_expr)
-          Chef::Log.debug("Globbed: #{files} with glob expr: #{glob_expr}")
 
-          files.each do |fname|
-            tasks.keys.each do |key|
-              if fname.start_with?(key)
-                tasks[key] << fname
-              end
-            end
+      new_resource.sql_globs.each do |glob_expr|
+        path = ::File.join(new_resource.sql_target_destination, glob_expr)
+        Chef::Log.debug("Globbing: #{Dir.entries(path)}")
+        files = Dir.glob(path)
+        Chef::Log.debug("Globbed: #{files} with glob expr: #{glob_expr}")
+        files.each do |fname|
+          tasks.keys.each do |key|
+            tasks[key] << fname if fname.start_with?(key)
           end
-
         end
       end
       Chef::Log.info("Populated tasks: #{tasks}")
