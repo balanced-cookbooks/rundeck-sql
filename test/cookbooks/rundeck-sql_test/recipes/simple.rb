@@ -18,6 +18,17 @@
 
 include_recipe 'postgresql::server'
 
+%w(balanced precog).each do |user|
+  pg_user user do
+    privileges superuser: true, createdb: true, login: true
+    password nil
+  end
+
+  pg_database user do
+    owner user
+  end
+end
+
 rundeck_sql_project 'balanced' do
   sql_repository 'balanced'
   sql_remote_directory 'rundeck-sql_test'

@@ -37,13 +37,12 @@ class Chef
     private
 
     def write_project_config
+      install_postgres
       create_node_source
       r = super
-      # Run these first since we need it installed to parse jobs
       notifying_block do
         clone_sql_repository
       end
-      install_postgres
       create_sql_jobs
       r
     end
@@ -112,16 +111,15 @@ class Chef
 
     def parse_sql_tasks
       tasks = {'monthly' => [], 'daily' => [], 'weekly' => []}
-
-
       new_resource.sql_globs.each do |glob_expr|
         path = ::File.join(new_resource.sql_target_destination, glob_expr)
-        Chef::Log.debug("Globbing: #{Dir.entries(path)}")
         files = Dir.glob(path)
-        Chef::Log.debug("Globbed: #{files} with glob expr: #{glob_expr}")
+        Chef::Log.info("Globbed: #{files} from expr: #{glob_expr} @ #{path}")
         files.each do |fname|
           tasks.keys.each do |key|
-            tasks[key] << fname if fname.start_with?(key)
+            if fname =~ Regexp.new(key)
+              tasks[key] << fname
+            end
           end
         end
       end

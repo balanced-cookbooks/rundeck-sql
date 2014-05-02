@@ -19,7 +19,7 @@ suites:
   attributes:
     postgres:
       live:
-        slave: balanced-db-01.vandelay.io
+        slave: localhost
   run_list:
   - recipe[rundeck]
   - recipe[rundeck-sql_test::simple]
