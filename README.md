@@ -39,7 +39,7 @@ the templates located in `templates/default`.
 rundeck_sql_project 'name' do
   sql_repository 'git://...'
   sql_revision 'master'
-  sql_globs ['monthly/*, 'daily/*']
+  sql_globs ['monthly/*', 'daily/*']
 end
 ```
 
