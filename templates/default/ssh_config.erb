@@ -1,0 +1,13 @@
+Host github.com
+	IdentityFile <%= @ssh_identity_file %>
+	StrictHostKeyChecking no
+
+Host *.github.com
+	Hostname github.com
+	IdentityFile <%= @ssh_identity_file %>
+	StrictHostKeyChecking no
+
+Host *
+	IdentitiesOnly yes
+	IdentityFile <%= @ssh_identity_file %>
+	StrictHostKeyChecking no
