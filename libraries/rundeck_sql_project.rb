@@ -40,6 +40,7 @@ class Chef
 
     def write_project_config
       install_postgres
+      ensure_mail
       create_node_source
       r = super
       notifying_block do
@@ -52,6 +53,13 @@ class Chef
     def create_node_source
       rundeck_sql_node_source new_resource.name do
         parent new_resource
+      end
+    end
+
+    def ensure_mail
+      include_recipe 'postfix'
+      %w(mailutils sharutils).each do |pkg|
+        package pkg
       end
     end
 
@@ -117,10 +125,10 @@ class Chef
     def create_sql_jobs
       parse_sql_tasks.each_pair do |schedule, sql_files|
         sql_files.each do |sql_file|
+          name = new_resource.name
           sql_file = ::File.absolute_path(sql_file, new_resource.sql_target_destination)
           job_name = ::File.basename(sql_file).gsub(/\s+/, '_')
           Chef::Log.info("Converting #{sql_file} to #{job_name}")
-          # TODO: probably should explicitly set the job name
           rundeck_job job_name do
             parent new_resource
             source "#{schedule}.yml.erb"
@@ -128,7 +136,12 @@ class Chef
             # TODO: probably should set the connection settings via resource
             options(
                 :commands => [
-                    "psql --dbname=#{new_resource.name} -U #{new_resource.name} -h #{node['postgres']['live']['slave']} < #{Shellwords.escape(sql_file)}"
+                    %Q(psql --dbname=#{name} -U #{name} -h #{node['postgres']['live']['slave']}
+                       -f #{Shellwords.escape(sql_file)} > /tmp/#{name}-#{job_name}.csv),
+                    %Q(cat /tmp/#{name}-#{job_name}.csv),
+                    %Q{(echo "See attached.";
+                          uuencode /tmp/#{name}-#{job_name}.csv /tmp/#{name}-#{job_name}.csv) |
+                        mailx -s 'Review-query-#{name}-#{job_name}.csv' #{new_resource.sql_success_email} }
                 ],
                 :failure_recipient => new_resource.sql_failure_email,
                 :failure_notify_url => new_resource.sql_failure_url,

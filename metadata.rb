@@ -17,7 +17,7 @@
 #
 
 name 'rundeck-sql'
-version '1.0.3'
+version '1.0.4'
 
 maintainer 'Mahmoud Abdelkader'
 maintainer_email 'mahmoud@balancedpayments.com'
@@ -29,3 +29,4 @@ depends 'git'
 depends 'rundeck', '~> 99.1.0'
 depends 'balanced-postgresql'
 depends 'balanced-citadel'
+depends 'postfix'
