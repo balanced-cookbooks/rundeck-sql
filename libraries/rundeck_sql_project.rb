@@ -37,17 +37,21 @@ class Chef
 
   class Provider::RundeckSqlProject < Provider::RundeckProject
 
-    private
-
-    def write_project_config
-      install_postgres
-      ensure_mail
-      create_node_source
-      r = super
+    def action_enable
+      super
       notifying_block do
         clone_sql_repository
       end
       create_sql_jobs
+    end
+
+    private
+
+    def write_project_config
+      create_node_source
+      r = super
+      install_postgres
+      ensure_mail
       r
     end
 

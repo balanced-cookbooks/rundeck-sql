@@ -28,7 +28,7 @@ describe 'interrogate jobs' do
 
   context 'balanced' do
     let(:cmd) {
-      backend.run_command('rd-jobs -p balanced --verbose')
+      backend.run_command('rd-jobs -p balanced-sql --verbose')
     }
 
     it 'should succeed' do
@@ -47,7 +47,7 @@ describe 'interrogate jobs' do
   context 'precog' do
 
     let(:cmd) {
-      backend.run_command('rd-jobs -p precog --verbose')
+      backend.run_command('rd-jobs -p precog-sql --verbose')
     }
 
     it 'should succeed' do
@@ -67,30 +67,30 @@ describe 'interrogate jobs' do
 end
 
 
-describe file('/var/lib/rundeck/projects/balanced/etc/project.properties') do
+describe file('/var/lib/rundeck/projects/balanced-sql/etc/project.properties') do
   it { should be_a_file }
-  its(:content) { should include('config.file=/var/lib/rundeck/projects/balanced/etc/resources.xml') }
+  its(:content) { should include('config.file=/var/lib/rundeck/projects/balanced-sql/etc/resources.xml') }
 end
 
-describe file('/var/lib/rundeck/projects/balanced/etc/resources.xml') do
+describe file('/var/lib/rundeck/projects/balanced-sql/etc/resources.xml') do
   it { should be_a_file }
   its(:content) { should include('name="localhost"') }
 end
 
-describe file('/var/lib/rundeck/projects/balanced/sql') do
+describe file('/var/lib/rundeck/projects/balanced-sql/sql') do
   it { should be_directory }
 end
 
-describe file('/var/lib/rundeck/projects/precog/etc/project.properties') do
+describe file('/var/lib/rundeck/projects/precog-sql/etc/project.properties') do
   it { should be_a_file }
-  its(:content) { should include('config.file=/var/lib/rundeck/projects/precog/etc/resources.xml') }
+  its(:content) { should include('config.file=/var/lib/rundeck/projects/precog-sql/etc/resources.xml') }
 end
 
-describe file('/var/lib/rundeck/projects/precog/etc/resources.xml') do
+describe file('/var/lib/rundeck/projects/precog-sql/etc/resources.xml') do
   it { should be_a_file }
   its(:content) { should include('name="localhost"') }
 end
 
-describe file('/var/lib/rundeck/projects/precog/sql') do
+describe file('/var/lib/rundeck/projects/precog-sql/sql') do
   it { should be_directory }
 end
