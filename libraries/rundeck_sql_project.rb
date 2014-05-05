@@ -25,7 +25,8 @@ class Chef
     attribute(:sql_failure_url, kind_of: String, default: lazy { node['rundeck-sql']['failure_url'] })
     attribute(:sql_success_email, kind_of: String, default: lazy { node['rundeck-sql']['success_email'] })
     attribute(:sql_success_url, kind_of: String, default: lazy { node['rundeck-sql']['success_url'] })
-    attribute(:sql_globs, kind_of: Array, default: [], required: true)
+    attribute(:sql_connection, kind_of: Hash, required: true)
+    attribute(:sql_globs, kind_of: Array, required: true)
     attribute(:sql_remote_directory, kind_of: String)     # For debugging, use remote_directory instead of git, set to the name of the cookbook
 
     def sql_target_destination
@@ -126,6 +127,7 @@ class Chef
       parse_sql_tasks.each_pair do |schedule, sql_files|
         sql_files.each do |sql_file|
           name = new_resource.name
+          sql_conn = new_resource.sql_connection
           sql_file = ::File.absolute_path(sql_file, new_resource.sql_target_destination)
           job_name = ::File.basename(sql_file).gsub(/\s+/, '_')
           Chef::Log.info("Converting #{sql_file} to #{job_name}")
@@ -136,7 +138,7 @@ class Chef
             # TODO: probably should set the connection settings via resource
             options(
                 :commands => [
-                    %Q(psql --dbname=#{name} -U #{name} -h #{node['postgres']['live']['slave']}
+                    %Q(psql --dbname=#{sql_conn['database']} -U #{sql_conn['username']} -h #{node['postgres']['live']['slave']}
                        -f #{Shellwords.escape(sql_file)} > /tmp/#{name}-#{job_name}.csv),
                     %Q(cat /tmp/#{name}-#{job_name}.csv),
                     %Q{(echo "See attached.";

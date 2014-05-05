@@ -40,9 +40,11 @@ rundeck_sql_project 'name' do
   sql_repository 'git://...'
   sql_revision 'master'
   sql_globs ['monthly/*', 'daily/*']
+  sql_connection ({'username': 'my-username', 'database': 'my-database-name'})
 end
 ```
 
 * `sql_repository` – Git URI to clone from. *(default: node['rundeck-sql']['repository'], required)*
 * `sql_revision` – Git branch or tag to use. *(default: node['rundeck-sql']['revision'])*
 * `sql_globs` – Array of Glob expressions *required*
+* `sql_connection` – Hash containing values for: `username` and `database` to connect to *required*

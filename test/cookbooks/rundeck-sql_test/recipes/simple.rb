@@ -29,14 +29,16 @@ include_recipe 'postgresql::server'
   end
 end
 
-rundeck_sql_project 'balanced' do
+rundeck_sql_project 'balanced-sql' do
   sql_repository 'balanced'
   sql_remote_directory 'rundeck-sql_test'
+  sql_connection ({'username' => 'balanced', 'database' => 'balanced'})
   sql_globs ['monthly/*', 'daily/*']
 end
 
-rundeck_sql_project 'precog' do
+rundeck_sql_project 'precog-sql' do
   sql_repository 'balanced'
   sql_remote_directory 'rundeck-sql_test'
+  sql_connection ({'username' => 'precog', 'database' => 'precog'})
   sql_globs ['monthly/*', 'daily/*']
 end
