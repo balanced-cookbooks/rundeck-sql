@@ -20,7 +20,7 @@ rundeck_sql_project 'balanced-sql' do
   sql_repository 'git@github.com:balanced/ministry-of-silly-walks.git'
   sql_revision 'master'
   sql_connection ({'username' => 'balanced', 'database' => 'balanced'})
-  sql_globs ['balanced/monthly/*', 'balanced/daily/*']
+  sql_globs ['balanced/monthly/*', 'balanced/weekly/*', 'balanced/daily/*']
 end
 
 
@@ -28,5 +28,5 @@ rundeck_sql_project 'precog-sql' do
   sql_repository 'git@github.com:balanced/ministry-of-silly-walks.git'
   sql_revision 'master'
   sql_connection ({'username' => 'precog', 'database' => 'precog'})
-  sql_globs ['precog/monthly/*', 'precog/daily/*']
+  sql_globs ['precog/monthly/*', 'precog/weekly/*', 'precog/daily/*']
 end

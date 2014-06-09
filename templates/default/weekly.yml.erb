@@ -1,0 +1,31 @@
+- schedule:
+    time:
+      seconds: '0'
+      minute: '30'
+      hour: '22'
+    month: '*'
+    weekday:
+      day: 'MON'
+    year: '*'
+  loglevel: INFO
+  sequence:
+    keepgoing: false
+    strategy: node-first
+    commands:
+    <% @commands.each do |command| %>
+    - exec: <%= command %>
+    <% end %>
+  description: 'Weekly SQL Scripts'
+  notification:
+    onsuccess:
+      recipients: <%= @success_recipient %>
+      urls: <%= @success_notify_url %>
+    onfailure:
+      recipients: <%= @failure_recipient %>
+      urls: <%= @failure_notify_url %>
+  nodefilters:
+    dispatch:
+      threadcount: 1
+      keepgoing: false
+      excludePrecedence: true
+      rankOrder: ascending

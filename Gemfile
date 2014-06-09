@@ -31,3 +31,7 @@ group(:plugins) do
   gem 'vagrant-berkshelf'
   gem 'vagrant-omnibus'
 end
+
+gem 'vagrant', github: 'mitchellh/vagrant', ref: 'v1.4.3'
+gem 'net-ssh', '2.7.0'
+
