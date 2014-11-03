@@ -17,7 +17,7 @@
 #
 
 name 'rundeck-sql'
-version '1.0.10'
+version '1.0.12'
 
 maintainer 'Mahmoud Abdelkader'
 maintainer_email 'mahmoud@balancedpayments.com'
