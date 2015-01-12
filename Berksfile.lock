@@ -66,7 +66,7 @@ GRAPH
     poise (>= 0.0.0)
     runit (>= 0.0.0)
     yum (>= 0.0.0)
-  rundeck-sql (1.0.14)
+  rundeck-sql (1.0.16)
     balanced-citadel (>= 0.0.0)
     balanced-postgresql (>= 0.0.0)
     git (>= 0.0.0)
