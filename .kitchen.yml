@@ -13,8 +13,11 @@ provisioner:
       access_key_id: <%= ENV['AWS_ACCESS_KEY_ID'] %>
       secret_access_key: <%= ENV['AWS_SECRET_ACCESS_KEY'] %>
 
+
 platforms:
   - name: ubuntu-12.04
+    driver_config:
+      require_chef_omnibus: '11.10.4'
     run_list:
     - recipe[apt]
 

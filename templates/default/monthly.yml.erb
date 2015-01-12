@@ -13,7 +13,8 @@
     strategy: node-first
     commands:
     <% @commands.each do |command| %>
-    - exec: <%= command %>
+      - exec: |
+         <%= command %>
     <% end %>
   description: 'Monthly SQL scripts'
   notification:

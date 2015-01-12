@@ -17,7 +17,7 @@
 #
 
 name 'rundeck-sql'
-version '1.0.14'
+version '1.0.16'
 
 maintainer 'Mahmoud Abdelkader'
 maintainer_email 'mahmoud@balancedpayments.com'
@@ -26,7 +26,7 @@ description 'Use SQL scripts and Rundeck for great good'
 long_description IO.read(File.join(File.dirname(__FILE__), 'README.md'))
 
 depends 'git'
-depends 'rundeck', '~> 99.1.0'
+depends 'rundeck', '~> 99.1'
 depends 'balanced-postgresql'
 depends 'balanced-citadel'
 depends 'postfix'

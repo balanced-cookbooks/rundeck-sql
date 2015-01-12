@@ -25,6 +25,7 @@ class Chef
     attribute(:sql_failure_url, kind_of: String, default: lazy { node['rundeck-sql']['failure_url'] })
     attribute(:sql_success_email, kind_of: String, default: lazy { node['rundeck-sql']['success_email'] })
     attribute(:sql_success_url, kind_of: String, default: lazy { node['rundeck-sql']['success_url'] })
+    attribute(:sql_report_email_map, kind_of: String, default: lazy { node['rundeck-sql']['report_email_map'] })
     attribute(:sql_connection, kind_of: Hash, required: true)
     attribute(:sql_globs, kind_of: Array, required: true)
     attribute(:sql_remote_directory, kind_of: String)     # For debugging, use remote_directory instead of git, set to the name of the cookbook
@@ -63,7 +64,7 @@ class Chef
 
     def ensure_mail
       include_recipe 'postfix'
-      %w(mailutils sharutils).each do |pkg|
+      %w(mailutils sharutils bsd-mailx).each do |pkg|
         package pkg
       end
     end
@@ -135,6 +136,31 @@ class Chef
           sql_file = ::File.absolute_path(sql_file, new_resource.sql_target_destination)
           job_name = ::File.basename(sql_file).gsub(/\s+/, '_')
           Chef::Log.info("Converting #{sql_file} to #{job_name}")
+
+          report_file_out_name = "#{name}-#{job_name}.csv"
+          report_email_to = new_resource.sql_success_email
+          report_email_subject = "Review-query-#{name}-#{job_name}.csv"
+          report_email_body = 'See attached.'
+          report_email_from = nil
+          report_email_bcc = nil
+
+          # For this particular file, did we override the recipient destinations?
+          if new_resource.sql_report_email_map.has_key?(::File::basename(sql_file))
+            report = new_resource.sql_report_email_map[::File::basename(sql_file)]
+            report_email_to = report.fetch('to', report_email_to)
+            report_email_subject = report.fetch('subject', report_email_subject)
+            report_email_body = report.fetch('body', report_email_body)
+            report_email_from = report.fetch('from', report_email_from)
+            report_email_bcc = report.fetch('bcc', report_email_bcc)
+          end
+
+          mail_cmd = build_mail_cmd(
+              report_email_to, report_email_subject, report_email_body,
+              :report_email_from => report_email_from,
+              :report_email_bcc => report_email_bcc,
+              :report_email_attachment => "/tmp/#{report_file_out_name}"
+          )
+
           rundeck_job job_name do
             parent new_resource
             source "#{schedule}.yml.erb"
@@ -142,12 +168,12 @@ class Chef
             # TODO: probably should set the connection settings via resource
             options(
                 :commands => [
-                    %Q(psql --dbname=#{sql_conn['database']} -U #{sql_conn['username']} -h #{node['postgres']['live']['slave']}
-                       -f #{Shellwords.escape(sql_file)} > /tmp/#{name}-#{job_name}.csv),
-                    %Q(cat /tmp/#{name}-#{job_name}.csv),
-                    %Q{(echo "See attached.";
-                          uuencode /tmp/#{name}-#{job_name}.csv /tmp/#{name}-#{job_name}.csv) |
-                        mailx -s 'Review-query-#{name}-#{job_name}.csv' #{new_resource.sql_success_email} }
+                    %Q(psql --dbname=#{sql_conn['database']} \
+                            -U #{sql_conn['username']}  \
+                            -h #{node['postgres']['live']['slave']} \
+                            -f #{Shellwords.escape(sql_file)} > /tmp/#{report_file_out_name}),
+                    %Q(cat /tmp/#{report_file_out_name}),
+                    mail_cmd,
                 ],
                 :failure_recipient => new_resource.sql_failure_email,
                 :failure_notify_url => new_resource.sql_failure_url,
@@ -157,6 +183,33 @@ class Chef
           end
         end
       end
+    end
+
+    def build_mail_cmd(to, subject, body, options={})
+      bcc = options.fetch(:report_email_bcc, nil)
+      from = options.fetch(:report_email_from, nil)
+      attachment = options.fetch(:report_email_attachment, nil)
+
+      to = to.join(',') if to.kind_of?(Array)
+      bcc = bcc.join(',') if bcc.kind_of?(Array)
+      body = Shellwords.escape(body)
+      subject = Shellwords.escape(subject)
+      # $ echo "something" | mailx -s "subject" -b bcc_user@some.com -c cc_user@some.com  -r sender@some.com recipient@example.com
+      from = Shellwords.escape("From: no-reply <#{from}>") unless from.nil?
+
+      cmd = []
+      if attachment.nil?
+        cmd << %Q[echo "#{body}" | ]
+      else
+        cmd << %Q[(echo "#{body}"; uuencode #{attachment} #{attachment}) |]
+      end
+      cmd << 'mailx'
+      cmd << %Q[-a '#{from}'] unless from.nil?
+      cmd << %Q[-b '#{bcc}'] unless bcc.nil?
+      cmd << %Q[-s "#{subject}"]
+      cmd << to
+
+      cmd.join(' ')
     end
 
     def parse_sql_tasks

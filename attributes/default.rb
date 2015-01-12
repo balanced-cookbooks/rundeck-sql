@@ -23,3 +23,6 @@ default['rundeck-sql']['failure_url'] = 'https://example.com/notify-me/failure'
 default['rundeck-sql']['success_email'] = 'test+success@example.com'
 default['rundeck-sql']['success_url'] = 'https://example.com/notify-me/success'
 
+
+# filename glob, [to (list), bcc, cc]
+default['rundeck-sql']['report_email_map'] = {}
